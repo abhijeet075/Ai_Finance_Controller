@@ -1,0 +1,4 @@
+transaction_id,invoice_id,settlement_id,predicted_status
+TX1024,INV982,SET441,matched
+TX1025,INV983,,exception
+TX1026,,,no_match

@@ -1,0 +1,12 @@
+{
+  "dataset_rows": 1000,
+  "bank_transactions": 364,
+  "invoices": 342,
+  "settlements": 294,
+  "cartesian_comparisons": 231504,
+  "examined_records": 23501,
+  "comparison_reduction_percent": 89.85,
+  "runtime_seconds": 0.430192,
+  "invoice_auto_selected": 273,
+  "settlement_auto_selected": 249
+}

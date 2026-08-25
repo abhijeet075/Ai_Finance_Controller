@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/hidden-truth.schema.json",
+  "title": "AI Finance Controller hidden truth record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "transaction_id",
+    "invoice_id",
+    "settlement_id",
+    "true_match",
+    "expected_status",
+    "scenario",
+    "reason"
+  ],
+  "properties": {
+    "transaction_id": { "type": "string", "minLength": 1 },
+    "invoice_id": { "type": ["string", "null"] },
+    "settlement_id": { "type": ["string", "null"] },
+    "true_match": { "type": "boolean" },
+    "expected_status": {
+      "enum": ["matched", "review", "exception", "no_match"]
+    },
+    "scenario": {
+      "enum": [
+        "normal",
+        "amount_mismatch",
+        "missing_settlement",
+        "duplicate_payment",
+        "date_mismatch",
+        "name_variation",
+        "currency_mismatch",
+        "partial_payment",
+        "unrelated"
+      ]
+    },
+    "reason": { "type": "string", "minLength": 1 }
+  }
+}
