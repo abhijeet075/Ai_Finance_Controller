@@ -12,9 +12,9 @@ def test_transactions_contract() -> None:
 
 
 def test_reconciliation_contract() -> None:
-    response = client.post("/api/reconciliation/runs", json={"source_batch": "demo"})
-    assert response.status_code == 202
-    assert response.json()["status"] == "accepted"
+    paths = app.openapi()["paths"]
+    assert "post" in paths["/api/reconciliation/runs"]
+    assert "get" in paths["/api/reconciliation/runs/{run_id}/predictions"]
 
 
 def test_forecast_rejects_invalid_horizon() -> None:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session
 from starlette.datastructures import UploadFile
 
@@ -89,7 +89,14 @@ async def _ingest(
     source: SourceType,
     request: Request,
     session: Session,
+    source_batch: str,
 ) -> IngestionResponse:
+    source_batch = source_batch.strip()
+    if not source_batch:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"message": "source_batch cannot be blank."},
+        )
     payload, format_name = await _read_upload(request)
     try:
         batch = parse_and_normalize(
@@ -98,6 +105,8 @@ async def _ingest(
             format_name,
             max_records=get_settings().max_upload_records,
         )
+        for record in batch.records:
+            record["source_batch"] = source_batch
     except IngestionValidationError as exc:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -132,21 +141,24 @@ async def _ingest(
 async def upload_bank(
     request: Request,
     session: Session = Depends(get_database_session),
+    source_batch: str = Query(default="default", min_length=1, max_length=128),
 ) -> IngestionResponse:
-    return await _ingest("bank", request, session)
+    return await _ingest("bank", request, session, source_batch)
 
 
 @router.post("/invoices", response_model=IngestionResponse)
 async def upload_invoices(
     request: Request,
     session: Session = Depends(get_database_session),
+    source_batch: str = Query(default="default", min_length=1, max_length=128),
 ) -> IngestionResponse:
-    return await _ingest("invoices", request, session)
+    return await _ingest("invoices", request, session, source_batch)
 
 
 @router.post("/settlements", response_model=IngestionResponse)
 async def upload_settlements(
     request: Request,
     session: Session = Depends(get_database_session),
+    source_batch: str = Query(default="default", min_length=1, max_length=128),
 ) -> IngestionResponse:
-    return await _ingest("settlements", request, session)
+    return await _ingest("settlements", request, session, source_batch)

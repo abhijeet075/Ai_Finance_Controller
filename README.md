@@ -127,5 +127,14 @@ functions before PostgreSQL storage. See `docs/data-normalization.md` and run:
 ```bash
 make test-normalization
 ```
-# Ai_Finance_Controller
-An AI-powered finance controller that automates multi-source transaction reconciliation, detects exceptions, measures matching accuracy, and forecasts cash flow.
+
+## Phase 10 reconciliation orchestration
+
+Upload bank, invoice, and settlement files with the same `source_batch` query value, then call
+`POST /api/reconciliation/runs`. The service loads that batch, runs Phase 9 candidate matching,
+applies deterministic global one-to-one assignment, persists canonical results and classified
+exceptions, and returns operational metrics. Download evaluator-ready CSV from
+`GET /api/reconciliation/runs/{run_id}/predictions`.
+
+Apply migration `20260831_0003` before using the workflow. See
+`docs/phase-10-reconciliation-orchestration.md` and run `make test-reconciliation`.

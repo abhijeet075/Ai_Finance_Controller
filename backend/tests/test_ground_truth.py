@@ -116,6 +116,27 @@ class GroundTruthTests(unittest.TestCase):
             self.assertNotIn("hidden_truth", source, path)
             self.assertNotIn("ground_truth", source, path)
 
+    def test_legacy_no_match_status_maps_to_canonical_exception(self) -> None:
+        truth = {
+            "T1": {
+                "transaction_id": "T1",
+                "invoice_id": None,
+                "settlement_id": None,
+                "true_match": False,
+                "expected_status": "no_match",
+            }
+        }
+        predictions = {
+            "T1": {
+                "transaction_id": "T1",
+                "invoice_id": "",
+                "settlement_id": "",
+                "predicted_status": "exception",
+            }
+        }
+        summary = evaluate(truth, predictions)["summary"]
+        self.assertEqual(1.0, summary["status_accuracy"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -60,6 +60,9 @@ class BankTransaction(Base, TimestampMixin):
     reference: Mapped[str | None] = mapped_column(String(255), index=True)
     account_number: Mapped[str] = mapped_column(String(128), index=True, nullable=False)
     transaction_type: Mapped[str] = mapped_column(String(16), index=True, nullable=False)
+    source_batch: Mapped[str] = mapped_column(
+        String(128), index=True, nullable=False, default="default"
+    )
 
 
 class Invoice(Base, TimestampMixin):
@@ -83,6 +86,9 @@ class Invoice(Base, TimestampMixin):
     )
     currency: Mapped[str] = mapped_column(String(3), nullable=False)
     status: Mapped[str] = mapped_column(String(24), index=True, nullable=False)
+    source_batch: Mapped[str] = mapped_column(
+        String(128), index=True, nullable=False, default="default"
+    )
 
 
 class Settlement(Base, TimestampMixin):
@@ -106,12 +112,39 @@ class Settlement(Base, TimestampMixin):
     amount: Mapped[Decimal] = mapped_column(
         Numeric(MONEY_PRECISION, MONEY_SCALE), nullable=False
     )
-    currency: Mapped[str] = mapped_column(
-    String(3), index=True, nullable=False
-    )
+    currency: Mapped[str] = mapped_column(String(3), nullable=False)
     processor: Mapped[str] = mapped_column(String(128), index=True, nullable=False)
     customer: Mapped[str] = mapped_column(String(255), index=True, nullable=False)
     status: Mapped[str] = mapped_column(String(24), index=True, nullable=False)
+    source_batch: Mapped[str] = mapped_column(
+        String(128), index=True, nullable=False, default="default"
+    )
+
+
+class ReconciliationRun(Base):
+    __tablename__ = "reconciliation_runs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    source_batch: Mapped[str] = mapped_column(String(128), index=True, nullable=False)
+    status: Mapped[str] = mapped_column(String(24), index=True, nullable=False)
+    records_processed: Mapped[int] = mapped_column(default=0, nullable=False)
+    matched_count: Mapped[int] = mapped_column(default=0, nullable=False)
+    review_count: Mapped[int] = mapped_column(default=0, nullable=False)
+    exception_count: Mapped[int] = mapped_column(default=0, nullable=False)
+    match_rate: Mapped[Decimal] = mapped_column(Numeric(7, 6), default=0, nullable=False)
+    processing_time_ms: Mapped[int] = mapped_column(default=0, nullable=False)
+    records_per_second: Mapped[Decimal] = mapped_column(
+        Numeric(12, 2), default=0, nullable=False
+    )
+    full_cartesian_comparisons: Mapped[int] = mapped_column(default=0, nullable=False)
+    candidate_records_examined: Mapped[int] = mapped_column(default=0, nullable=False)
+    comparison_reduction: Mapped[Decimal] = mapped_column(
+        Numeric(5, 2), default=0, nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class ReconciliationResult(Base):
@@ -125,10 +158,22 @@ class ReconciliationResult(Base):
             "status IN ('matched', 'review', 'exception')",
             name="ck_reconciliation_results_status",
         ),
+        UniqueConstraint(
+            "run_id", "bank_transaction_id", name="uq_reconciliation_results_run_bank"
+        ),
+        UniqueConstraint(
+            "run_id", "invoice_id", name="uq_reconciliation_results_run_invoice"
+        ),
+        UniqueConstraint(
+            "run_id", "settlement_id", name="uq_reconciliation_results_run_settlement"
+        ),
         Index("ix_reconciliation_results_status_confidence", "status", "confidence"),
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    run_id: Mapped[str | None] = mapped_column(
+        ForeignKey("reconciliation_runs.id", ondelete="CASCADE"), index=True
+    )
     bank_transaction_id: Mapped[str] = mapped_column(
         ForeignKey("bank_transactions.id", ondelete="CASCADE"), index=True, nullable=False
     )
@@ -167,6 +212,9 @@ class ExceptionRecord(Base, TimestampMixin):
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
+    run_id: Mapped[str | None] = mapped_column(
+        ForeignKey("reconciliation_runs.id", ondelete="CASCADE"), index=True
+    )
     transaction_id: Mapped[str] = mapped_column(
         ForeignKey("bank_transactions.id", ondelete="CASCADE"), index=True, nullable=False
     )
