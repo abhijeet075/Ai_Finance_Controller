@@ -11,6 +11,7 @@ EXPECTED_COLUMNS = {
         "reference",
         "account_number",
         "transaction_type",
+        "source_batch",
     },
     "invoices": {
         "id",
@@ -21,6 +22,7 @@ EXPECTED_COLUMNS = {
         "amount",
         "currency",
         "status",
+        "source_batch",
     },
     "settlements": {
         "id",
@@ -31,9 +33,11 @@ EXPECTED_COLUMNS = {
         "processor",
         "customer",
         "status",
+        "source_batch",
     },
     "reconciliation_results": {
         "id",
+        "run_id",
         "bank_transaction_id",
         "invoice_id",
         "settlement_id",
@@ -44,6 +48,7 @@ EXPECTED_COLUMNS = {
     },
     "exceptions": {
         "id",
+        "run_id",
         "transaction_id",
         "exception_type",
         "severity",
@@ -51,6 +56,23 @@ EXPECTED_COLUMNS = {
         "recommended_action",
         "confidence",
         "status",
+    },
+    "reconciliation_runs": {
+        "id",
+        "source_batch",
+        "status",
+        "records_processed",
+        "matched_count",
+        "review_count",
+        "exception_count",
+        "match_rate",
+        "processing_time_ms",
+        "records_per_second",
+        "full_cartesian_comparisons",
+        "candidate_records_examined",
+        "comparison_reduction",
+        "created_at",
+        "completed_at",
     },
     "cash_forecasts": {
         "id",
@@ -81,6 +103,7 @@ def test_reconciliation_foreign_keys_are_present() -> None:
     assert targets == {
         "bank_transactions.id",
         "invoices.id",
+        "reconciliation_runs.id",
         "settlements.id",
     }
 
@@ -88,4 +111,4 @@ def test_reconciliation_foreign_keys_are_present() -> None:
 def test_exception_transaction_foreign_key_is_present() -> None:
     table = Base.metadata.tables["exceptions"]
     targets = {fk.target_fullname for fk in table.foreign_keys}
-    assert targets == {"bank_transactions.id"}
+    assert targets == {"bank_transactions.id", "reconciliation_runs.id"}

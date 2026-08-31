@@ -3,6 +3,7 @@ from app.models.finance import (
     CashForecast,
     ExceptionRecord,
     Invoice,
+    ReconciliationRun,
     ReconciliationResult,
     Settlement,
 )
@@ -12,6 +13,7 @@ __all__ = [
     "CashForecast",
     "ExceptionRecord",
     "Invoice",
+    "ReconciliationRun",
     "ReconciliationResult",
     "Settlement",
 ]

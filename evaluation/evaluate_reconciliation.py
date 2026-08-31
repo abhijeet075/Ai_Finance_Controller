@@ -88,6 +88,12 @@ def _ratio(numerator: int, denominator: int) -> float:
     return round(numerator / denominator, 6) if denominator else 0.0
 
 
+def _canonical_status(value: str | None) -> str:
+    """Map legacy truth labels onto the application's canonical decision statuses."""
+    status = (value or "").strip()
+    return "exception" if status == "no_match" else status
+
+
 def evaluate(
     truth: dict[str, dict[str, Any]],
     predictions: dict[str, dict[str, str]],
@@ -141,7 +147,9 @@ def evaluate(
             exact_link_correct += 1
 
         predicted_status = (prediction.get("predicted_status") or "").strip()
-        status_matches = predicted_status == expected["expected_status"]
+        status_matches = _canonical_status(predicted_status) == _canonical_status(
+            expected["expected_status"]
+        )
         if status_matches:
             status_correct += 1
 

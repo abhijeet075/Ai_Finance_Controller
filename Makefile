@@ -1,4 +1,4 @@
-.PHONY: api frontend test lint db-up db-down migrate generate-data test-ground-truth test-ingestion test-normalization
+.PHONY: api frontend test lint db-up db-down migrate generate-data test-ground-truth test-ingestion test-normalization test-reconciliation
 
 api:
 	uvicorn app.main:app --app-dir backend --reload
@@ -10,7 +10,7 @@ test:
 	pytest
 
 lint:
-	ruff check backend scripts
+	ruff check backend scripts evaluation
 	cd frontend && npm run lint
 
 db-up:
@@ -33,3 +33,9 @@ test-ingestion:
 
 test-normalization:
 	PYTHONPATH=backend python -m unittest backend.tests.test_normalization -v
+
+test-reconciliation:
+	PYTHONPATH=.:backend python -m pytest \
+		backend/tests/test_decision_engine.py \
+		backend/tests/test_reconciliation_service.py \
+		backend/tests/test_run_scoreboard.py -v

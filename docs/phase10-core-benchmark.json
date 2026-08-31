@@ -1,0 +1,19 @@
+{
+  "dataset_rows": 1000,
+  "records_processed": 364,
+  "matched": 165,
+  "review": 179,
+  "exceptions": 20,
+  "match_rate": 0.453297,
+  "core_processing_time_ms": 450.512,
+  "core_records_per_second": 807.97,
+  "full_cartesian_comparisons": 231504,
+  "candidate_records_examined": 23501,
+  "comparison_reduction_percent": 89.85,
+  "precision": 0.665605,
+  "recall": 0.614706,
+  "f1": 0.639144,
+  "exact_link_accuracy": 0.637363,
+  "status_accuracy": 0.623626,
+  "evaluation_exception_count": 201
+}
