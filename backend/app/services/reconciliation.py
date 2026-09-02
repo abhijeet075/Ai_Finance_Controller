@@ -50,6 +50,21 @@ class RunSummary:
     comparison_reduction: Decimal
 
 
+@dataclass(frozen=True)
+class ExceptionReportItem:
+    transaction_id: str
+    predicted_status: str
+    exception_type: str
+    best_candidate_id: str | None
+    best_candidate_type: str | None
+    confidence: Decimal
+    reason: str
+    bank_amount: Decimal
+    candidate_amount: Decimal | None
+    amount_difference: Decimal | None
+    currency: str
+
+
 def _to_domain(
     bank_rows: list[BankTransaction],
     invoice_rows: list[Invoice],
@@ -128,6 +143,10 @@ def _persist_decisions(
                 confidence=decision.confidence,
                 status=decision.status,
                 reason=decision.reason,
+                best_candidate_id=decision.best_candidate_id,
+                best_candidate_type=decision.best_candidate_type,
+                best_candidate_amount=decision.best_candidate_amount,
+                amount_difference=decision.amount_difference,
             )
         )
         if decision.exception_type:
@@ -252,4 +271,70 @@ def export_predictions_csv(session: Session, run_id: str) -> str:
                 "predicted_status": row.status,
             }
         )
+    return output.getvalue()
+
+
+def get_exception_report(
+    session: Session,
+    run_id: str,
+) -> tuple[ExceptionReportItem, ...]:
+    if session.get(ReconciliationRun, run_id) is None:
+        raise ReconciliationRunNotFoundError(f"Reconciliation run '{run_id}' was not found.")
+    results = list(
+        session.scalars(
+            select(ReconciliationResult)
+            .where(
+                ReconciliationResult.run_id == run_id,
+                ReconciliationResult.status != "matched",
+            )
+            .order_by(ReconciliationResult.bank_transaction_id)
+        )
+    )
+    transaction_ids = [item.bank_transaction_id for item in results]
+    banks = {
+        item.id: item
+        for item in session.scalars(
+            select(BankTransaction).where(BankTransaction.id.in_(transaction_ids))
+        )
+    }
+    exceptions = {
+        item.transaction_id: item
+        for item in session.scalars(
+            select(ExceptionRecord)
+            .where(ExceptionRecord.run_id == run_id)
+            .order_by(ExceptionRecord.transaction_id, ExceptionRecord.id)
+        )
+    }
+    report = []
+    for result in results:
+        bank = banks[result.bank_transaction_id]
+        exception = exceptions.get(result.bank_transaction_id)
+        report.append(
+            ExceptionReportItem(
+                transaction_id=result.bank_transaction_id,
+                predicted_status=result.status,
+                exception_type=exception.exception_type if exception else "unclassified",
+                best_candidate_id=result.best_candidate_id,
+                best_candidate_type=result.best_candidate_type,
+                confidence=(result.confidence / Decimal("100")).quantize(
+                    Decimal("0.0001")
+                ),
+                reason=result.reason,
+                bank_amount=bank.amount,
+                candidate_amount=result.best_candidate_amount,
+                amount_difference=result.amount_difference,
+                currency=bank.currency,
+            )
+        )
+    return tuple(report)
+
+
+def export_exception_report_csv(session: Session, run_id: str) -> str:
+    rows = get_exception_report(session, run_id)
+    output = io.StringIO(newline="")
+    fieldnames = tuple(ExceptionReportItem.__dataclass_fields__)
+    writer = csv.DictWriter(output, fieldnames=fieldnames)
+    writer.writeheader()
+    for item in rows:
+        writer.writerow(item.__dict__)
     return output.getvalue()

@@ -5,6 +5,7 @@ The generator creates deterministic source CSVs and keeps evaluation labels in a
 ## Supported scale presets
 
 ```bash
+python scripts/generate_data.py --records 50
 python scripts/generate_data.py --records 100
 python scripts/generate_data.py --records 500
 python scripts/generate_data.py --records 1000
@@ -53,7 +54,8 @@ Every preset contains all required scenarios:
 - Partial payments
 - Completely unrelated records
 
-A weighted distribution produces a realistic mix while guaranteeing at least one example of every scenario for datasets of 100 rows or more.
+A weighted distribution produces a realistic mix. The 50-row Phase 11 preset also includes every
+required scenario; semantic coverage remains mandatory for every preset-sized evaluation dataset.
 
 ## Reproducibility
 

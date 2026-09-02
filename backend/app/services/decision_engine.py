@@ -10,8 +10,12 @@ from typing import Literal
 
 from app.services.baseline_reconciliation import BankRecord, InvoiceRecord
 from app.services.candidate_matching import Candidate, CandidateBatch, SettlementRecord
-from app.services.normalization import normalize_amount, normalize_currency, normalize_description
-from app.services.normalization import normalize_name
+from app.services.normalization import (
+    normalize_amount,
+    normalize_currency,
+    normalize_description,
+    normalize_name,
+)
 
 DecisionStatus = Literal["matched", "review", "exception"]
 ExceptionType = Literal[
@@ -35,6 +39,10 @@ class CanonicalDecision:
     exception_type: ExceptionType | None = None
     severity: Literal["info", "warning", "critical"] | None = None
     recommended_action: str | None = None
+    best_candidate_id: str | None = None
+    best_candidate_type: Literal["invoice", "settlement"] | None = None
+    best_candidate_amount: Decimal | None = None
+    amount_difference: Decimal | None = None
 
 
 @dataclass(frozen=True)
@@ -110,6 +118,16 @@ def _reference(value: str | None) -> str:
     return re.sub(r"[^A-Z0-9]", "", (value or "").upper())
 
 
+def _best_candidate(transaction: object) -> Candidate | None:
+    values = (*transaction.invoices, *transaction.settlements)
+    if not values:
+        return None
+    return min(
+        values,
+        key=lambda item: (-item.score, item.kind, item.record_id),
+    )
+
+
 def _is_currency_mismatch(
     bank: BankRecord,
     invoices: list[InvoiceRecord],
@@ -140,6 +158,43 @@ def _has_reference_amount_mismatch(bank: BankRecord, invoices: list[InvoiceRecor
         ):
             return True
     return False
+
+
+def _diagnostic_evidence(
+    exception_type: ExceptionType,
+    bank: BankRecord,
+    invoices: list[InvoiceRecord],
+    settlements: list[SettlementRecord],
+) -> tuple[Literal["invoice", "settlement"], str, Decimal, Decimal] | None:
+    bank_amount = normalize_amount(bank.amount)
+    bank_currency = normalize_currency(bank.currency)
+    values: list[
+        tuple[Literal["invoice", "settlement"], str, Decimal, Decimal]
+    ] = []
+    if exception_type == "currency_mismatch":
+        for kind, records in (("invoice", invoices), ("settlement", settlements)):
+            for record in records:
+                if (
+                    kind == "settlement"
+                    and isinstance(record, SettlementRecord)
+                    and record.status in {"failed", "reversed"}
+                ):
+                    continue
+                amount = normalize_amount(record.amount)
+                if (
+                    amount == bank_amount
+                    and normalize_currency(record.currency) != bank_currency
+                ):
+                    values.append((kind, record.id, amount, Decimal("0.00")))
+    elif exception_type == "amount_mismatch":
+        reference = _reference(bank.reference)
+        for invoice in invoices:
+            amount = normalize_amount(invoice.amount)
+            if _reference(invoice.invoice_number) == reference and amount != bank_amount:
+                values.append(
+                    ("invoice", invoice.id, amount, abs(amount - bank_amount))
+                )
+    return min(values, key=lambda item: (item[3], item[0], item[1])) if values else None
 
 
 def _exception_details(
@@ -199,9 +254,17 @@ def decide_reconciliation(
     settlement_assignments, settlement_conflicts = _global_assignment(
         candidates, "settlement", blocked
     )
+    candidate_amounts = {
+        **{("invoice", item.id): normalize_amount(item.amount) for item in invoices},
+        **{("settlement", item.id): normalize_amount(item.amount) for item in settlements},
+    }
     decisions: list[CanonicalDecision] = []
     for bank in sorted(banks, key=lambda item: item.id):
         transaction = by_bank[bank.id]
+        best = _best_candidate(transaction)
+        best_amount = (
+            candidate_amounts.get((best.kind, best.record_id)) if best else None
+        )
         invoice = invoice_assignments.get(bank.id)
         settlement = settlement_assignments.get(bank.id)
         conflict = bank.id in invoice_conflicts or bank.id in settlement_conflicts
@@ -229,6 +292,10 @@ def decide_reconciliation(
                     confidence,
                     "matched",
                     "invoice_and_settlement_assigned",
+                    best_candidate_id=best.record_id if best else None,
+                    best_candidate_type=best.kind if best else None,
+                    best_candidate_amount=best_amount,
+                    amount_difference=best.amount_difference if best else None,
                 )
             )
             continue
@@ -247,20 +314,46 @@ def decide_reconciliation(
         else:
             exception_type = "no_match"
             status = "exception"
-        scores = [item.score for item in (*transaction.invoices, *transaction.settlements)]
-        confidence = max(scores, default=Decimal("0.00"))
-        severity, description, action = _exception_details(exception_type)
+        diagnostic = _diagnostic_evidence(
+            exception_type, bank, invoices, settlements
+        )
+        if diagnostic:
+            best_type, best_id, best_amount, best_difference = diagnostic
+            scored = next(
+                (
+                    item
+                    for item in (*transaction.invoices, *transaction.settlements)
+                    if item.kind == best_type and item.record_id == best_id
+                ),
+                None,
+            )
+            confidence = scored.score if scored else Decimal("0.00")
+        else:
+            best_type = best.kind if best else None
+            best_id = best.record_id if best else None
+            best_difference = best.amount_difference if best else None
+            confidence = best.score if best else Decimal("0.00")
+        if bank.id in ineligible:
+            severity = "info"
+            description = "Debit transactions are outside the receivables workflow."
+            action = "Route this debit to the payable or cash-disbursement workflow."
+        else:
+            severity, description, action = _exception_details(exception_type)
         decisions.append(
             CanonicalDecision(
-                bank.id,
-                invoice.record_id if invoice else None,
-                settlement.record_id if settlement else None,
-                confidence,
-                status,
-                description,
-                exception_type,
-                severity,
-                action,
+                bank_transaction_id=bank.id,
+                invoice_id=invoice.record_id if invoice else None,
+                settlement_id=settlement.record_id if settlement else None,
+                confidence=confidence,
+                status=status,
+                reason=description,
+                exception_type=exception_type,
+                severity=severity,
+                recommended_action=action,
+                best_candidate_id=best_id,
+                best_candidate_type=best_type,
+                best_candidate_amount=best_amount,
+                amount_difference=best_difference,
             )
         )
     return DecisionBatch(tuple(decisions))

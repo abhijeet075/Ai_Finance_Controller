@@ -1,9 +1,6 @@
 from datetime import date
 from decimal import Decimal
 
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session
-
 from app.database import Base
 from app.models.finance import (
     BankTransaction,
@@ -12,7 +9,14 @@ from app.models.finance import (
     ReconciliationResult,
     Settlement,
 )
-from app.services.reconciliation import export_predictions_csv, run_reconciliation
+from app.services.reconciliation import (
+    export_exception_report_csv,
+    export_predictions_csv,
+    get_exception_report,
+    run_reconciliation,
+)
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session
 
 
 def test_service_persists_run_results_and_export() -> None:
@@ -72,3 +76,48 @@ def test_service_persists_run_results_and_export() -> None:
             "transaction_id,invoice_id,settlement_id,predicted_status"
         )
         assert "B1,I1,S1,matched" in exported
+
+
+def test_service_exports_honest_exception_evidence() -> None:
+    engine = create_engine("sqlite+pysqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    with Session(engine) as session:
+        session.add(
+            BankTransaction(
+                id="B1",
+                transaction_date=date(2026, 8, 31),
+                amount=Decimal("90"),
+                currency="INR",
+                description="PAYMENT ALPHA",
+                reference="INV-1",
+                account_number="XXXX1234",
+                transaction_type="credit",
+                source_batch="exceptions",
+            )
+        )
+        session.add(
+            Invoice(
+                id="I1",
+                invoice_number="INV-1",
+                customer="ALPHA",
+                invoice_date=date(2026, 8, 31),
+                due_date=date(2026, 9, 7),
+                amount=Decimal("100"),
+                currency="INR",
+                status="open",
+                source_batch="exceptions",
+            )
+        )
+        session.commit()
+        summary = run_reconciliation(session, "exceptions")
+        report = get_exception_report(session, summary.run_id)
+        assert len(report) == 1
+        assert report[0].transaction_id == "B1"
+        assert report[0].exception_type == "amount_mismatch"
+        assert report[0].best_candidate_id == "I1"
+        assert report[0].bank_amount == Decimal("90.00")
+        assert report[0].candidate_amount == Decimal("100.00")
+        assert report[0].amount_difference == Decimal("10.00")
+        exported = export_exception_report_csv(session, summary.run_id)
+        assert "transaction_id,predicted_status,exception_type" in exported
+        assert "B1,exception,amount_mismatch,I1,invoice" in exported

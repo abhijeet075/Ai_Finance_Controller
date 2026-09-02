@@ -35,3 +35,17 @@ class OfflineEvaluationMetrics(BaseModel):
     f1: Decimal = Field(ge=0, le=1)
     exact_link_accuracy: Decimal = Field(ge=0, le=1)
     status_accuracy: Decimal = Field(ge=0, le=1)
+
+
+class ReconciliationExceptionRead(BaseModel):
+    transaction_id: str
+    predicted_status: Literal["review", "exception"]
+    exception_type: str
+    best_candidate_id: str | None
+    best_candidate_type: Literal["invoice", "settlement"] | None
+    confidence: float = Field(ge=0, le=1)
+    reason: str
+    bank_amount: Decimal
+    candidate_amount: Decimal | None
+    amount_difference: Decimal | None
+    currency: str

@@ -1,4 +1,6 @@
-.PHONY: api frontend test lint db-up db-down migrate generate-data test-ground-truth test-ingestion test-normalization test-reconciliation
+.PHONY: api frontend test lint db-up db-down migrate generate-data \
+	test-ground-truth test-ingestion test-normalization test-reconciliation \
+	test-evaluation
 
 api:
 	uvicorn app.main:app --app-dir backend --reload
@@ -38,4 +40,10 @@ test-reconciliation:
 	PYTHONPATH=.:backend python -m pytest \
 		backend/tests/test_decision_engine.py \
 		backend/tests/test_reconciliation_service.py \
+		backend/tests/test_run_scoreboard.py -v
+
+test-evaluation:
+	PYTHONPATH=.:backend python -m pytest \
+		backend/tests/test_ground_truth.py \
+		backend/tests/test_phase11_evaluation.py \
 		backend/tests/test_run_scoreboard.py -v

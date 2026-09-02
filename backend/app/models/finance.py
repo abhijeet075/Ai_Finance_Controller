@@ -188,6 +188,14 @@ class ReconciliationResult(Base):
     )
     status: Mapped[str] = mapped_column(String(24), index=True, nullable=False)
     reason: Mapped[str] = mapped_column(Text, nullable=False)
+    best_candidate_id: Mapped[str | None] = mapped_column(String(36))
+    best_candidate_type: Mapped[str | None] = mapped_column(String(16))
+    best_candidate_amount: Mapped[Decimal | None] = mapped_column(
+        Numeric(MONEY_PRECISION, MONEY_SCALE)
+    )
+    amount_difference: Mapped[Decimal | None] = mapped_column(
+        Numeric(MONEY_PRECISION, MONEY_SCALE)
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
