@@ -14,8 +14,13 @@ def test_transactions_contract() -> None:
 def test_reconciliation_contract() -> None:
     paths = app.openapi()["paths"]
     assert "post" in paths["/api/reconciliation/runs"]
-    assert "get" in paths["/api/reconciliation/runs/{run_id}/predictions"]
+    assert "get" in paths["/api/reconciliation/runs"]
+    assert "get" in paths["/api/reconciliation/source-batches"]
+    assert "get" in paths["/api/reconciliation/runs/{run_id}"]
+    assert "get" in paths["/api/reconciliation/runs/{run_id}/results"]
     assert "get" in paths["/api/reconciliation/runs/{run_id}/exceptions"]
+    assert "get" in paths["/api/reconciliation/runs/{run_id}/metrics"]
+    assert "get" in paths["/api/reconciliation/runs/{run_id}/predictions.csv"]
     assert "get" in paths["/api/reconciliation/runs/{run_id}/exceptions.csv"]
 
 

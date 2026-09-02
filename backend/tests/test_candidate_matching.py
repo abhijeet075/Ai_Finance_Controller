@@ -1,12 +1,16 @@
-import unittest
+﻿import unittest
 from datetime import date, timedelta
 from decimal import Decimal
 
 from app.services.baseline_reconciliation import BankRecord, InvoiceRecord
-from app.services.candidate_matching import CandidateConfig, CandidateMatcher, SettlementRecord
+from app.services.candidate_matching import (
+    CandidateBatch,
+    CandidateConfig,
+    CandidateMatcher,
+    SettlementRecord,
+)
 
 TODAY = date(2026, 8, 20)
-
 
 def bank(amount="100", currency="INR"):
     return BankRecord(
@@ -79,7 +83,24 @@ class CandidateMatchingTests(unittest.TestCase):
         one = CandidateMatcher(records, []).match_transaction(bank())
         two = CandidateMatcher(list(reversed(records)), []).match_transaction(bank())
         self.assertEqual(one, two)
+    def test_comparison_reduction_never_becomes_negative(self) -> None:
+        batch = CandidateBatch(
+        transactions=(),
+        full_cartesian_comparisons=1,
+        examined_records=2,
+    )
 
+        assert batch.comparison_reduction_percent == Decimal("0.00")
 
 if __name__ == "__main__":
     unittest.main()
+
+def test_comparison_reduction_never_becomes_negative() -> None:
+    from decimal import Decimal
+
+    from app.services.candidate_matching import CandidateBatch
+    batch = CandidateBatch(transactions=(),full_cartesian_comparisons=1,examined_records=2,)
+    assert batch.comparison_reduction_percent == Decimal("0.00")
+
+
+

@@ -179,7 +179,9 @@ class SyntheticFinanceGenerator:
         invoice_id = self._id("invoice")
         return {
             "id": invoice_id,
-            "invoice_number":(f"INV-{self.seed}-{case_id.removeprefix('CASE-')}"),
+            "invoice_number": (
+                f"INV-{self.seed}-{case_id.removeprefix('CASE-')}"
+            ),
             "customer": customer,
             "invoice_date": invoice_date.isoformat(),
             "due_date": (invoice_date + timedelta(days=self.rng.choice((15, 30, 45)))).isoformat(),
@@ -217,7 +219,9 @@ class SyntheticFinanceGenerator:
     ) -> dict[str, str]:
         return {
             "id": self._id("settlement"),
-            "settlement_reference": (f"SET-{self.seed}-{case_id.removeprefix('CASE-')}"),
+            "settlement_reference": (
+                f"SET-{self.seed}-{case_id.removeprefix('CASE-')}"
+            ),
             "transaction_date": transaction_date.isoformat(),
             "amount": money(amount),
             "currency": "INR",

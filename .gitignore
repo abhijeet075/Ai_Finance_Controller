@@ -23,6 +23,7 @@ data/ground_truth/*
 !data/ground_truth/.gitkeep
 data/exports/*
 !data/exports/.gitkeep
+evaluation/batches.json
 
 # Editors / OS
 .vscode/
