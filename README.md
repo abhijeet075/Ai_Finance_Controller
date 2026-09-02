@@ -158,3 +158,27 @@ PYTHONPATH=.:backend python -m evaluation.evaluate_batch \
 
 For the full matrix, copy `evaluation/batches.example.json`, update its paths, and run
 `python -m evaluation.evaluate_matrix`. See `docs/phase-11-end-to-end-evaluation.md`.
+
+## Phase 12 reconciliation API
+
+Phase 12 exposes the deterministic reconciliation core as a run-oriented API. It adds traceable
+`pending`, `running`, `completed`, and `failed` lifecycle states, paginated run history and results,
+filtered exceptions, operational metrics, source-batch discovery, and CSV exports. Production
+metrics deliberately return null precision/recall/F1 values because hidden truth remains isolated
+in the Phase 11 evaluator.
+
+Apply migration `20260902_0005`, then use:
+
+```text
+GET  /api/reconciliation/source-batches
+POST /api/reconciliation/runs
+GET  /api/reconciliation/runs
+GET  /api/reconciliation/runs/{run_id}
+GET  /api/reconciliation/runs/{run_id}/results
+GET  /api/reconciliation/runs/{run_id}/exceptions
+GET  /api/reconciliation/runs/{run_id}/metrics
+GET  /api/reconciliation/runs/{run_id}/predictions.csv
+GET  /api/reconciliation/runs/{run_id}/exceptions.csv
+```
+
+See `docs/phase-12-api-run-management.md` and run `make test-run-management`.

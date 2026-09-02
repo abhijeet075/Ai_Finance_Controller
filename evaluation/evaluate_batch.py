@@ -5,9 +5,12 @@ from __future__ import annotations
 import argparse
 import json
 from dataclasses import asdict
+from datetime import date, datetime
 from decimal import Decimal
 from pathlib import Path
 from typing import Any
+
+from sqlalchemy.orm import Session
 
 from app.config import get_settings
 from app.database import SessionLocal
@@ -18,8 +21,6 @@ from app.services.reconciliation import (
     export_predictions_csv,
     run_reconciliation,
 )
-from sqlalchemy.orm import Session
-
 from evaluation.evaluate_run import build_scoreboard, render_text_report
 
 SOURCE_FILES = {
@@ -32,6 +33,8 @@ SOURCE_FILES = {
 def _json_default(value: object) -> object:
     if isinstance(value, Decimal):
         return float(value)
+    if isinstance(value, (date, datetime)):
+        return value.isoformat()
     raise TypeError(f"Cannot serialize {type(value).__name__}")
 
 

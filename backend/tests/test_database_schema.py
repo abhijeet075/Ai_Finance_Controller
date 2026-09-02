@@ -71,12 +71,17 @@ EXPECTED_COLUMNS = {
         "exception_count",
         "match_rate",
         "processing_time_ms",
+        "matching_time_ms",
+        "decision_time_ms",
+        "persistence_time_ms",
         "records_per_second",
         "full_cartesian_comparisons",
         "candidate_records_examined",
         "comparison_reduction",
         "created_at",
+        "started_at",
         "completed_at",
+        "error_message",
     },
     "cash_forecasts": {
         "id",
@@ -116,3 +121,8 @@ def test_exception_transaction_foreign_key_is_present() -> None:
     table = Base.metadata.tables["exceptions"]
     targets = {fk.target_fullname for fk in table.foreign_keys}
     assert targets == {"bank_transactions.id", "reconciliation_runs.id"}
+
+
+def test_phase12_run_links_are_required() -> None:
+    assert not Base.metadata.tables["reconciliation_results"].c.run_id.nullable
+    assert not Base.metadata.tables["exceptions"].c.run_id.nullable

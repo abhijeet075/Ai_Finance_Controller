@@ -14,7 +14,7 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
 
@@ -123,6 +123,12 @@ class Settlement(Base, TimestampMixin):
 
 class ReconciliationRun(Base):
     __tablename__ = "reconciliation_runs"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('pending', 'running', 'completed', 'failed')",
+            name="ck_reconciliation_runs_status",
+        ),
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
     source_batch: Mapped[str] = mapped_column(String(128), index=True, nullable=False)
@@ -133,6 +139,9 @@ class ReconciliationRun(Base):
     exception_count: Mapped[int] = mapped_column(default=0, nullable=False)
     match_rate: Mapped[Decimal] = mapped_column(Numeric(7, 6), default=0, nullable=False)
     processing_time_ms: Mapped[int] = mapped_column(default=0, nullable=False)
+    matching_time_ms: Mapped[int] = mapped_column(default=0, nullable=False)
+    decision_time_ms: Mapped[int] = mapped_column(default=0, nullable=False)
+    persistence_time_ms: Mapped[int] = mapped_column(default=0, nullable=False)
     records_per_second: Mapped[Decimal] = mapped_column(
         Numeric(12, 2), default=0, nullable=False
     )
@@ -144,7 +153,15 @@ class ReconciliationRun(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    error_message: Mapped[str | None] = mapped_column(Text)
+    results: Mapped[list["ReconciliationResult"]] = relationship(
+        back_populates="run", cascade="all, delete-orphan"
+    )
+    exceptions: Mapped[list["ExceptionRecord"]] = relationship(
+        back_populates="run", cascade="all, delete-orphan"
+    )
 
 
 class ReconciliationResult(Base):
@@ -171,8 +188,10 @@ class ReconciliationResult(Base):
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
-    run_id: Mapped[str | None] = mapped_column(
-        ForeignKey("reconciliation_runs.id", ondelete="CASCADE"), index=True
+    run_id: Mapped[str] = mapped_column(
+        ForeignKey("reconciliation_runs.id", ondelete="CASCADE"),
+        index=True,
+        nullable=False,
     )
     bank_transaction_id: Mapped[str] = mapped_column(
         ForeignKey("bank_transactions.id", ondelete="CASCADE"), index=True, nullable=False
@@ -199,6 +218,7 @@ class ReconciliationResult(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+    run: Mapped[ReconciliationRun] = relationship(back_populates="results")
 
 
 class ExceptionRecord(Base, TimestampMixin):
@@ -220,8 +240,10 @@ class ExceptionRecord(Base, TimestampMixin):
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_id)
-    run_id: Mapped[str | None] = mapped_column(
-        ForeignKey("reconciliation_runs.id", ondelete="CASCADE"), index=True
+    run_id: Mapped[str] = mapped_column(
+        ForeignKey("reconciliation_runs.id", ondelete="CASCADE"),
+        index=True,
+        nullable=False,
     )
     transaction_id: Mapped[str] = mapped_column(
         ForeignKey("bank_transactions.id", ondelete="CASCADE"), index=True, nullable=False
@@ -234,6 +256,7 @@ class ExceptionRecord(Base, TimestampMixin):
         Numeric(CONFIDENCE_PRECISION, CONFIDENCE_SCALE), nullable=False
     )
     status: Mapped[str] = mapped_column(String(24), index=True, nullable=False)
+    run: Mapped[ReconciliationRun] = relationship(back_populates="exceptions")
 
 
 class CashForecast(Base):

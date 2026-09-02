@@ -101,9 +101,7 @@ def build_scoreboard(
 
 
 def render_text_report(scoreboard: dict[str, Any]) -> str:
-    def percent(value: object) -> str:
-        return f"{float(value) * 100:.2f}%"
-
+    percent = lambda value: f"{float(value) * 100:.2f}%"
     lines = [
         "=" * 48,
         "AI FINANCE CONTROLLER — EVALUATION",

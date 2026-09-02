@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import Any
 
 from app.database import SessionLocal
-
 from evaluation.evaluate_batch import evaluate_batch
 
 REQUIRED_SIZES = {50, 100, 500, 1_000, 5_000}

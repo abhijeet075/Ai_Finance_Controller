@@ -1,6 +1,9 @@
 from datetime import date
 from decimal import Decimal
 
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session
+
 from app.database import Base
 from app.models.finance import (
     BankTransaction,
@@ -15,8 +18,6 @@ from app.services.reconciliation import (
     get_exception_report,
     run_reconciliation,
 )
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session
 
 
 def test_service_persists_run_results_and_export() -> None:
@@ -65,8 +66,13 @@ def test_service_persists_run_results_and_export() -> None:
         session.commit()
         summary = run_reconciliation(session, "demo")
         assert summary.records_processed == 1
+        assert summary.status == "completed"
         assert summary.matched == 1
         assert summary.match_rate == Decimal("1.000000")
+        assert summary.processing_time_ms > 0
+        assert summary.records_per_second > 0
+        assert summary.started_at is not None
+        assert summary.completed_at is not None
         result = session.scalar(select(ReconciliationResult))
         assert result is not None
         assert result.run_id == summary.run_id
