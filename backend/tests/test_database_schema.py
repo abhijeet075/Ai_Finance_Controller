@@ -44,6 +44,10 @@ EXPECTED_COLUMNS = {
         "confidence",
         "status",
         "reason",
+        "best_candidate_id",
+        "best_candidate_type",
+        "best_candidate_amount",
+        "amount_difference",
         "created_at",
     },
     "exceptions": {

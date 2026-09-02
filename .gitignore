@@ -21,6 +21,8 @@ data/processed/*
 !data/processed/.gitkeep
 data/ground_truth/*
 !data/ground_truth/.gitkeep
+data/exports/*
+!data/exports/.gitkeep
 
 # Editors / OS
 .vscode/

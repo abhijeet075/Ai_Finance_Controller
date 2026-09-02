@@ -67,7 +67,7 @@ Generate an exact combined source-row count across bank transactions, invoices, 
 python scripts/generate_data.py --records 500 --seed 42 --clean
 ```
 
-Generate every required scale—100, 500, 1,000, 5,000, and 10,000 rows:
+Generate every required scale—50, 100, 500, 1,000, 5,000, and 10,000 rows:
 
 ```bash
 python scripts/generate_data.py --all-presets --seed 42 --clean
@@ -138,3 +138,23 @@ exceptions, and returns operational metrics. Download evaluator-ready CSV from
 
 Apply migration `20260831_0003` before using the workflow. See
 `docs/phase-10-reconciliation-orchestration.md` and run `make test-reconciliation`.
+
+## Phase 11 end-to-end evaluation
+
+Phase 11 runs the real persisted Phase 10 controller before loading hidden truth. It produces a
+run summary, evaluator-ready predictions, an honest unresolved-transaction report, JSON and text
+scoreboards, and a comparison matrix for 50, 100, 500, 1,000, and 5,000 source rows.
+
+Apply migration `20260831_0004`, generate datasets with truth outside the application data path,
+then run:
+
+```bash
+PYTHONPATH=.:backend python -m evaluation.evaluate_batch \
+  --source-dir data/raw/synthetic_500_seed_542 \
+  --truth ../evaluation-ground-truth/synthetic_500_seed_542/hidden_truth.jsonl \
+  --source-batch eval-500-seed-542 \
+  --output-dir data/exports/evaluation/500
+```
+
+For the full matrix, copy `evaluation/batches.example.json`, update its paths, and run
+`python -m evaluation.evaluate_matrix`. See `docs/phase-11-end-to-end-evaluation.md`.

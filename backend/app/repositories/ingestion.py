@@ -28,7 +28,12 @@ def _record_matches(existing: object, record: dict[str, object]) -> bool:
     return all(getattr(existing, field) == value for field, value in record.items())
 
 
-def store_batch(session: Session, batch: NormalizedBatch) -> tuple[int, int]:
+def store_batch(
+    session: Session,
+    batch: NormalizedBatch,
+    *,
+    commit: bool = True,
+) -> tuple[int, int]:
     """Insert one validated batch atomically; return inserted and exact-duplicate counts."""
     model = MODEL_BY_SOURCE[batch.source]
     records = batch.records
@@ -74,7 +79,10 @@ def store_batch(session: Session, batch: NormalizedBatch) -> tuple[int, int]:
 
     try:
         session.add_all(model(**record) for record in new_records)
-        session.commit()
+        if commit:
+            session.commit()
+        else:
+            session.flush()
     except IntegrityError as exc:
         session.rollback()
         raise IngestionConflictError(

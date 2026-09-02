@@ -4,6 +4,7 @@ from app.schemas.ingestion import IngestionIssueResponse, IngestionResponse
 from app.schemas.invoices import InvoiceCreate, InvoiceRead
 from app.schemas.reconciliation import (
     OfflineEvaluationMetrics,
+    ReconciliationExceptionRead,
     ReconciliationRunRequest,
     ReconciliationRunSummary,
 )
@@ -20,7 +21,8 @@ __all__ = [
     "ExceptionCreate", "ExceptionList", "ExceptionRead",
     "IngestionIssueResponse", "IngestionResponse",
     "InvoiceCreate", "InvoiceRead",
-    "OfflineEvaluationMetrics", "ReconciliationRunRequest",
+    "OfflineEvaluationMetrics", "ReconciliationExceptionRead",
+    "ReconciliationRunRequest",
     "ReconciliationRunSummary",
     "SettlementCreate", "SettlementRead",
 ]

@@ -20,7 +20,7 @@ from pathlib import Path
 from typing import Callable
 from uuid import NAMESPACE_DNS, uuid5
 
-SUPPORTED_PRESETS = (100, 500, 1_000, 5_000, 10_000)
+SUPPORTED_PRESETS = (50, 100, 500, 1_000, 5_000, 10_000)
 SOURCE_COLUMNS = {
     "bank_transactions": (
         "id",
@@ -179,7 +179,7 @@ class SyntheticFinanceGenerator:
         invoice_id = self._id("invoice")
         return {
             "id": invoice_id,
-            "invoice_number": f"INV-{case_id.removeprefix('CASE-')}",
+            "invoice_number":(f"INV-{self.seed}-{case_id.removeprefix('CASE-')}"),
             "customer": customer,
             "invoice_date": invoice_date.isoformat(),
             "due_date": (invoice_date + timedelta(days=self.rng.choice((15, 30, 45)))).isoformat(),
@@ -217,7 +217,7 @@ class SyntheticFinanceGenerator:
     ) -> dict[str, str]:
         return {
             "id": self._id("settlement"),
-            "settlement_reference": f"SET-{case_id.removeprefix('CASE-')}",
+            "settlement_reference": (f"SET-{self.seed}-{case_id.removeprefix('CASE-')}"),
             "transaction_date": transaction_date.isoformat(),
             "amount": money(amount),
             "currency": "INR",
@@ -683,7 +683,11 @@ def parse_args() -> argparse.Namespace:
     )
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--records", type=int, default=500, help="Exact total rows across the three source CSVs.")
-    mode.add_argument("--all-presets", action="store_true", help="Generate 100, 500, 1,000, 5,000, and 10,000-row datasets.")
+    mode.add_argument(
+        "--all-presets",
+        action="store_true",
+        help="Generate 50, 100, 500, 1,000, 5,000, and 10,000-row datasets.",
+    )
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--output-root", type=Path, default=Path("data"))
     parser.add_argument(

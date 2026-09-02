@@ -2,11 +2,17 @@ from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy.orm import Session
 
 from app.database import get_database_session
-from app.schemas.reconciliation import ReconciliationRunRequest, ReconciliationRunSummary
+from app.schemas.reconciliation import (
+    ReconciliationExceptionRead,
+    ReconciliationRunRequest,
+    ReconciliationRunSummary,
+)
 from app.services.reconciliation import (
     EmptySourceBatchError,
     ReconciliationRunNotFoundError,
+    export_exception_report_csv,
     export_predictions_csv,
+    get_exception_report,
     get_run_summary,
     run_reconciliation,
 )
@@ -56,5 +62,40 @@ def download_predictions(
         media_type="text/csv",
         headers={
             "Content-Disposition": f'attachment; filename="predictions-{run_id}.csv"'
+        },
+    )
+
+
+@router.get(
+    "/runs/{run_id}/exceptions",
+    response_model=list[ReconciliationExceptionRead],
+)
+def read_exception_report(
+    run_id: str,
+    session: Session = Depends(get_database_session),
+) -> list[ReconciliationExceptionRead]:
+    try:
+        return [
+            ReconciliationExceptionRead.model_validate(item.__dict__)
+            for item in get_exception_report(session, run_id)
+        ]
+    except ReconciliationRunNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+
+
+@router.get("/runs/{run_id}/exceptions.csv")
+def download_exception_report(
+    run_id: str,
+    session: Session = Depends(get_database_session),
+) -> Response:
+    try:
+        content = export_exception_report_csv(session, run_id)
+    except ReconciliationRunNotFoundError as exc:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
+    return Response(
+        content=content,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": f'attachment; filename="exceptions-{run_id}.csv"'
         },
     )

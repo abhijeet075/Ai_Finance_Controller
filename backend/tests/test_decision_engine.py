@@ -51,6 +51,10 @@ def test_missing_settlement_is_review() -> None:
     assert decision.status == "review"
     assert decision.invoice_id == "I1"
     assert decision.exception_type == "missing_settlement"
+    assert decision.best_candidate_id == "I1"
+    assert decision.best_candidate_type == "invoice"
+    assert decision.best_candidate_amount == Decimal("100.00")
+    assert decision.amount_difference == Decimal("0.00")
 
 
 def test_duplicate_payments_are_not_auto_assigned() -> None:
@@ -91,7 +95,13 @@ def test_currency_and_reference_amount_mismatches_are_classified() -> None:
     by_id = {item.bank_transaction_id: item for item in decisions}
     assert by_id["B1"].exception_type == "currency_mismatch"
     assert by_id["B1"].severity == "critical"
+    assert by_id["B1"].best_candidate_id == "I1"
+    assert by_id["B1"].best_candidate_amount == Decimal("100.00")
+    assert by_id["B1"].amount_difference == Decimal("0.00")
     assert by_id["B2"].exception_type == "amount_mismatch"
+    assert by_id["B2"].best_candidate_id == "I2"
+    assert by_id["B2"].best_candidate_amount == Decimal("100.00")
+    assert by_id["B2"].amount_difference == Decimal("10.00")
 
 
 def test_debits_cannot_consume_invoice_or_settlement_assignments() -> None:
@@ -116,6 +126,7 @@ def test_debits_cannot_consume_invoice_or_settlement_assignments() -> None:
     assert decision.exception_type == "no_match"
     assert decision.invoice_id is None
     assert decision.settlement_id is None
+    assert decision.reason == "Debit transactions are outside the receivables workflow."
 
 
 def test_failed_settlement_does_not_create_currency_mismatch() -> None:

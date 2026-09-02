@@ -15,6 +15,8 @@ def test_reconciliation_contract() -> None:
     paths = app.openapi()["paths"]
     assert "post" in paths["/api/reconciliation/runs"]
     assert "get" in paths["/api/reconciliation/runs/{run_id}/predictions"]
+    assert "get" in paths["/api/reconciliation/runs/{run_id}/exceptions"]
+    assert "get" in paths["/api/reconciliation/runs/{run_id}/exceptions.csv"]
 
 
 def test_forecast_rejects_invalid_horizon() -> None:
