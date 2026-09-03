@@ -94,7 +94,11 @@ class ExceptionItem:
     status: str
     best_candidate_id: str | None
     best_candidate_type: str | None
+    invoice_id: str | None
+    settlement_id: str | None
     bank_amount: Decimal
+    invoice_amount: Decimal | None
+    settlement_amount: Decimal | None
     candidate_amount: Decimal | None
     amount_difference: Decimal | None
     currency: str
@@ -373,6 +377,8 @@ def _exception_item(
     exception: ExceptionRecord,
     result: ReconciliationResult,
     bank: BankTransaction,
+    invoice: Invoice | None,
+    settlement: Settlement | None,
 ) -> ExceptionItem:
     return ExceptionItem(
         id=exception.id,
@@ -386,7 +392,11 @@ def _exception_item(
         status=exception.status,
         best_candidate_id=result.best_candidate_id,
         best_candidate_type=result.best_candidate_type,
+        invoice_id=result.invoice_id,
+        settlement_id=result.settlement_id,
         bank_amount=bank.amount,
+        invoice_amount=invoice.amount if invoice else None,
+        settlement_amount=settlement.amount if settlement else None,
         candidate_amount=result.best_candidate_amount,
         amount_difference=result.amount_difference,
         currency=bank.currency,

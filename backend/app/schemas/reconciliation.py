@@ -84,7 +84,11 @@ class ReconciliationExceptionRead(BaseModel):
     status: ExceptionStatus
     best_candidate_id: str | None
     best_candidate_type: Literal["invoice", "settlement"] | None
+    invoice_id: str | None
+    settlement_id: str | None
     bank_amount: float
+    invoice_amount: float | None
+    settlement_amount: float | None
     candidate_amount: float | None
     amount_difference: float | None
     currency: str

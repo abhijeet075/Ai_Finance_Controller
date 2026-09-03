@@ -182,3 +182,13 @@ GET  /api/reconciliation/runs/{run_id}/exceptions.csv
 ```
 
 See `docs/phase-12-api-run-management.md` and run `make test-run-management`.
+
+## Phase 13 dashboard
+
+The React dashboard consumes the Phase 12 API directly and provides three finance-operations screens:
+
+- **Overview** — source-batch selection, run execution/history, operational and quality metrics, decision distribution, and CSV exports.
+- **Results** — server-filtered, server-paginated transaction decisions with linked invoice and settlement evidence.
+- **Exceptions** — server-filtered exception workbench with a detailed evidence drawer, amounts, reason, and recommended action.
+
+Production precision, recall, and F1 remain visibly **Not evaluated** when the API returns `null`; the frontend never substitutes demo values or accesses hidden truth. See `docs/phase-13-dashboard.md`.

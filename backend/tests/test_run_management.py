@@ -4,6 +4,11 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import StaticPool
+
 from app.database import Base, get_database_session
 from app.main import app
 from app.models.finance import (
@@ -20,10 +25,6 @@ from app.services.reconciliation import (
     list_run_summaries,
     run_reconciliation,
 )
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
 
 
 def _engine():
@@ -168,6 +169,10 @@ def test_phase12_api_contract_end_to_end() -> None:
         )
         assert exceptions.status_code == 200
         assert exceptions.json()["total"] == 1
+        exception = exceptions.json()["items"][0]
+        assert exception["invoice_id"] == "I1"
+        assert exception["invoice_amount"] == 100.0
+        assert exception["settlement_id"] is None
 
         metrics = client.get(f"/api/reconciliation/runs/{run_id}/metrics")
         assert metrics.status_code == 200

@@ -1,6 +1,6 @@
 .PHONY: api frontend test lint db-up db-down migrate generate-data \
 	test-ground-truth test-ingestion test-normalization test-reconciliation \
-	test-evaluation test-run-management
+	test-evaluation test-run-management test-dashboard
 
 api:
 	uvicorn app.main:app --app-dir backend --reload
@@ -53,3 +53,6 @@ test-run-management:
 		backend/tests/test_reconciliation_service.py \
 		backend/tests/test_run_management.py \
 		backend/tests/test_api_contracts.py -v
+
+test-dashboard:
+	cd frontend && npm test && npm run lint && npm run build
