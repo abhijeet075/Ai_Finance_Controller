@@ -112,7 +112,18 @@ def list_exceptions(
     severity: str | None = None,
     exception_type: str | None = None,
     status: str | None = None,
-) -> tuple[list[tuple[ExceptionRecord, ReconciliationResult, BankTransaction]], int]:
+) -> tuple[
+    list[
+        tuple[
+            ExceptionRecord,
+            ReconciliationResult,
+            BankTransaction,
+            Invoice | None,
+            Settlement | None,
+        ]
+    ],
+    int,
+]:
     filters = [ExceptionRecord.run_id == run_id]
     if severity:
         filters.append(ExceptionRecord.severity == severity)
@@ -121,7 +132,13 @@ def list_exceptions(
     if status:
         filters.append(ExceptionRecord.status == status)
     joins = (
-        select(ExceptionRecord, ReconciliationResult, BankTransaction)
+        select(
+            ExceptionRecord,
+            ReconciliationResult,
+            BankTransaction,
+            Invoice,
+            Settlement,
+        )
         .join(
             ReconciliationResult,
             (ReconciliationResult.run_id == ExceptionRecord.run_id)
@@ -131,6 +148,8 @@ def list_exceptions(
             ),
         )
         .join(BankTransaction, BankTransaction.id == ExceptionRecord.transaction_id)
+        .outerjoin(Invoice, Invoice.id == ReconciliationResult.invoice_id)
+        .outerjoin(Settlement, Settlement.id == ReconciliationResult.settlement_id)
         .where(*filters)
         .order_by(ExceptionRecord.created_at, ExceptionRecord.id)
     )

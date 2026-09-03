@@ -105,7 +105,6 @@ class CandidateBatch:
     def comparison_reduction_percent(self) -> Decimal:
         if not self.full_cartesian_comparisons:
             return Decimal("0.00")
-
         effective_examined = min(
             self.examined_records,
             self.full_cartesian_comparisons,
@@ -114,6 +113,7 @@ class CandidateBatch:
             self.full_cartesian_comparisons
         )
         return ((ONE - ratio) * 100).quantize(Decimal("0.01"))
+
 
 @dataclass(frozen=True)
 class _Bucket(Generic[T]):
@@ -162,8 +162,8 @@ def _possible_customer(left: str, right: str, minimum: Decimal) -> bool:
 def _buckets(records: list[T]) -> dict[str, _Bucket[T]]:
     grouped: dict[str, list[tuple[Decimal, str, T]]] = defaultdict(list)
     for record in records:
-        grouped[normalize_currency(record.currency)].append(
-            (normalize_amount(record.amount), record.id, record)
+        grouped[normalize_currency(getattr(record, "currency"))].append(
+            (normalize_amount(getattr(record, "amount")), getattr(record, "id"), record)
         )
     result = {}
     for currency, values in grouped.items():

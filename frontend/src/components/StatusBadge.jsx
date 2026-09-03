@@ -1,8 +1,11 @@
-export default function StatusBadge({ children, healthy = false }) {
+import { titleCase } from "../utils/formatters";
+
+export default function StatusBadge({ status, children }) {
+  const value = status || "neutral";
   return (
-    <span className={healthy ? "status" : "tag"}>
-      {healthy && <i />}
-      {children}
+    <span className={`badge badge--${value}`}>
+      <span className="badge__dot" aria-hidden="true" />
+      {children || titleCase(value)}
     </span>
   );
 }
