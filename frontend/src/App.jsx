@@ -11,12 +11,16 @@ import {
 import ExceptionsPage from "./pages/ExceptionsPage";
 import OverviewPage from "./pages/OverviewPage";
 import ResultsPage from "./pages/ResultsPage";
+import ForecastPage from "./pages/ForecastPage";
+import FinanceQAPage from "./pages/FinanceQAPage";
 import { shortId } from "./utils/formatters";
 
 const screens = [
   ["overview", "Overview"],
   ["results", "Results"],
   ["exceptions", "Exceptions"],
+  ["forecast", "Forecast"],
+  ["qa", "Ask Finance"],
 ];
 
 function App() {
@@ -150,8 +154,15 @@ function App() {
             error={error}
           />
         )}
-        {screen === "results" && <ResultsPage runId={run?.run_id} />}
+        {screen === "results" && (
+          <ResultsPage
+            key={run?.run_id || "no-run"}
+            runId={run?.run_id}
+          />
+        )}
         {screen === "exceptions" && <ExceptionsPage runId={run?.run_id} />}
+        {screen === "forecast" && <ForecastPage sourceBatch={selectedBatch || undefined} />}
+        {screen === "qa" && <FinanceQAPage sourceBatch={selectedBatch || undefined} />}
       </main>
       <footer className="app-footer">
         <span>Deterministic reconciliation</span>

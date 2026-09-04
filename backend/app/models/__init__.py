@@ -1,14 +1,16 @@
 from app.models.finance import (
+    AuditLog,
     BankTransaction,
     CashForecast,
     ExceptionRecord,
     Invoice,
-    ReconciliationRun,
     ReconciliationResult,
+    ReconciliationRun,
     Settlement,
 )
 
 __all__ = [
+    "AuditLog",
     "BankTransaction",
     "CashForecast",
     "ExceptionRecord",

@@ -10,8 +10,12 @@ from typing import Literal
 
 from app.services.baseline_reconciliation import BankRecord, InvoiceRecord
 from app.services.candidate_matching import Candidate, CandidateBatch, SettlementRecord
-from app.services.normalization import normalize_amount, normalize_currency, normalize_description
-from app.services.normalization import normalize_name
+from app.services.normalization import (
+    normalize_amount,
+    normalize_currency,
+    normalize_description,
+    normalize_name,
+)
 
 DecisionStatus = Literal["matched", "review", "exception"]
 ExceptionType = Literal[

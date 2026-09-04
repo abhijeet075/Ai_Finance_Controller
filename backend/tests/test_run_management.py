@@ -4,11 +4,6 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session, sessionmaker
-from sqlalchemy.pool import StaticPool
-
 from app.database import Base, get_database_session
 from app.main import app
 from app.models.finance import (
@@ -25,6 +20,10 @@ from app.services.reconciliation import (
     list_run_summaries,
     run_reconciliation,
 )
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 
 def _engine():

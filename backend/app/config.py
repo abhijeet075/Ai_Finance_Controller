@@ -11,6 +11,10 @@ class Settings(BaseSettings):
     )
     llm_api_key: str | None = None
     llm_model: str | None = None
+    llm_base_url: str = "https://api.openai.com/v1"
+    llm_timeout_seconds: float = 30.0
+    llm_max_tokens: int = 600
+    app_api_key: str | None = None
     cors_origins: list[str] = ["http://localhost:5173"]
     max_upload_bytes: int = 10_485_760
     max_upload_records: int = 10_000

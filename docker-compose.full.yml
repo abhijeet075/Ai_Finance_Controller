@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: finance_controller
+      POSTGRES_USER: finance_user
+      POSTGRES_PASSWORD: finance_password
+    volumes: [finance_postgres_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U finance_user -d finance_controller"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://finance_user:finance_password@postgres:5432/finance_controller
+    depends_on:
+      postgres: { condition: service_healthy }
+    ports: ["8000:8000"]
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    depends_on: [api]
+    ports: ["5173:80"]
+volumes:
+  finance_postgres_data:

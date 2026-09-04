@@ -192,3 +192,7 @@ The React dashboard consumes the Phase 12 API directly and provides three financ
 - **Exceptions** — server-filtered exception workbench with a detailed evidence drawer, amounts, reason, and recommended action.
 
 Production precision, recall, and F1 remain visibly **Not evaluated** when the API returns `null`; the frontend never substitutes demo values or accesses hidden truth. See `docs/phase-13-dashboard.md`.
+
+## Phases 14–18
+
+The completed control plane adds database-backed 7/14/30-day cash forecasts, guarded AI matching for ambiguous cases, structured AI exception analysis, evidence-backed finance Q&A, API-key authentication, audit logs, CI, performance testing, optional containers, deployment assets, and a final benchmark/demo workflow. See `docs/phases-14-18.md`.

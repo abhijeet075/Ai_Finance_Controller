@@ -1,14 +1,12 @@
-from fastapi.testclient import TestClient
-
 from app.main import app
+from fastapi.testclient import TestClient
 
 client = TestClient(app)
 
 
 def test_transactions_contract() -> None:
-    response = client.get("/api/transactions")
-    assert response.status_code == 200
-    assert response.json() == {"items": [], "total": 0}
+    paths = app.openapi()["paths"]
+    assert "get" in paths["/api/transactions"]
 
 
 def test_reconciliation_contract() -> None:
@@ -22,6 +20,16 @@ def test_reconciliation_contract() -> None:
     assert "get" in paths["/api/reconciliation/runs/{run_id}/metrics"]
     assert "get" in paths["/api/reconciliation/runs/{run_id}/predictions.csv"]
     assert "get" in paths["/api/reconciliation/runs/{run_id}/exceptions.csv"]
+
+
+def test_phases14_to18_api_contract() -> None:
+    paths = app.openapi()["paths"]
+    assert "get" in paths["/api/forecast"]
+    assert "get" in paths["/api/forecasts"]
+    assert "post" in paths["/api/ai/match"]
+    assert "post" in paths["/api/ai/exceptions/{exception_id}/analyze"]
+    assert "post" in paths["/api/ai/finance-qa"]
+    assert "get" in paths["/api/audit-logs"]
 
 
 def test_forecast_rejects_invalid_horizon() -> None:

@@ -10,8 +10,6 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy.orm import Session
-
 from app.config import get_settings
 from app.database import SessionLocal
 from app.repositories.ingestion import store_batch
@@ -21,6 +19,8 @@ from app.services.reconciliation import (
     export_predictions_csv,
     run_reconciliation,
 )
+from sqlalchemy.orm import Session
+
 from evaluation.evaluate_run import build_scoreboard, render_text_report
 
 SOURCE_FILES = {

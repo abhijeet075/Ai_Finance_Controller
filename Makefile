@@ -56,3 +56,9 @@ test-run-management:
 
 test-dashboard:
 	cd frontend && npm test && npm run lint && npm run build
+
+performance-test:
+	python scripts/performance_test.py
+
+final-benchmark:
+	python -m evaluation.final_benchmark

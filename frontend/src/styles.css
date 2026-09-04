@@ -185,3 +185,27 @@ tbody tr:hover { background: #fafbfa; }
   .drawer { padding: 22px 18px; }
   .app-footer { flex-direction: column; padding: 20px 18px; }
 }
+
+
+/* Phases 14–18 */
+.forecast-equation { display:grid; grid-template-columns:repeat(9,auto); align-items:stretch; gap:12px; padding:20px; background:#f9f8f7; border:1px solid var(--border); border-radius:12px; overflow-x:auto; }
+.forecast-equation > div { min-width:150px; padding:16px; background:#fff; border:1px solid var(--border); border-radius:8px; display:flex; flex-direction:column; gap:8px; }
+.forecast-equation > b { align-self:center; color:var(--muted); font-size:20px; }
+.forecast-equation span,.evidence-grid span { color:var(--muted); font-size:13px; }
+.forecast-equation strong { font-size:20px; }
+.forecast-equation__result { background:#e5f2fc !important; border-color:#b7d8f5 !important; }
+.assumptions ul,.ai-analysis ul { margin:12px 0 0; color:var(--muted); line-height:1.6; }
+.qa-form label { display:block; font-weight:700; margin-bottom:10px; }
+.qa-form > div { display:flex; gap:12px; }
+.qa-form input { flex:1; min-height:44px; border:1px solid var(--border); border-radius:8px; padding:0 14px; font:inherit; }
+.qa-answer__copy { font-size:18px; line-height:1.6; max-width:760px; }
+.evidence-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; margin-top:20px; }
+.evidence-grid article { border:1px solid var(--border); border-radius:8px; padding:14px; display:flex; flex-direction:column; gap:6px; }
+.evidence-grid strong { font-size:18px; }.evidence-grid small { color:var(--muted); }
+.ai-analysis { margin-top:20px; padding:16px; border:1px solid #b7d8f5; border-radius:8px; background:#f4f9fe; }
+.ai-analysis > div:first-child { margin-bottom:12px; }.ai-analysis__result { margin-top:14px; padding-top:14px; border-top:1px solid #b7d8f5; }
+.ai-analysis__result > div { display:flex; justify-content:space-between; gap:16px; }
+.reason-cell > span,.ai-suggestion { display:block; }
+.text-button { border:0; background:none; color:#2783de; font:inherit; font-weight:700; padding:6px 0; cursor:pointer; }
+.ai-suggestion { color:var(--muted); line-height:1.4; }
+@media (max-width: 760px) { .qa-form > div { flex-direction:column; }.forecast-equation { grid-template-columns:1fr; }.forecast-equation > b { transform:rotate(90deg); }.main-nav { overflow-x:auto; } }

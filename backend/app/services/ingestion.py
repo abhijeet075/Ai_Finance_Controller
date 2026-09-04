@@ -13,7 +13,6 @@ from typing import Any, Literal
 
 from app.services.normalization import (
     NormalizationError,
-    SUPPORTED_CURRENCIES,
     normalize_amount,
     normalize_currency,
     normalize_date,

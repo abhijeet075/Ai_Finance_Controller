@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import EmptyState from "../components/EmptyState";
 import Pagination from "../components/Pagination";
 import StatusBadge from "../components/StatusBadge";
-import { getResults } from "../api/client";
+import { getResults, suggestAIMatch } from "../api/client";
 import { formatConfidence, shortId } from "../utils/formatters";
 
 const filters = [
@@ -19,6 +19,20 @@ export default function ResultsPage({ runId }) {
   const [data, setData] = useState({ items: [], total: 0, page_size: 25 });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [suggestions, setSuggestions] = useState({});
+
+  async function requestSuggestion(item) {
+    setError("");
+    try {
+      const suggestion = await suggestAIMatch(runId, item.transaction_id);
+      setSuggestions((current) => ({
+        ...current,
+        [item.id]: suggestion,
+      }));
+    } catch (requestError) {
+      setError(requestError.message);
+    }
+  }
 
   useEffect(() => {
     if (!runId) return undefined;
@@ -101,7 +115,23 @@ export default function ResultsPage({ runId }) {
                     <td title={item.settlement_id || ""}>{shortId(item.settlement_id, 12)}</td>
                     <td><StatusBadge status={item.status} /></td>
                     <td className="numeric">{formatConfidence(item.confidence)}</td>
-                    <td className="reason-cell">{item.reason}</td>
+                    <td className="reason-cell">
+                      <span>{item.reason}</span>
+                      {item.status !== "matched" && (
+                        <button
+                          type="button"
+                          className="text-button"
+                          onClick={() => requestSuggestion(item)}
+                        >
+                          AI assist
+                        </button>
+                      )}
+                      {suggestions[item.id] && (
+                        <small className="ai-suggestion">
+                          {suggestions[item.id].explanation}
+                        </small>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

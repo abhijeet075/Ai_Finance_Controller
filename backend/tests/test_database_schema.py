@@ -2,6 +2,16 @@ from app.database import Base
 from app.models import finance  # noqa: F401
 
 EXPECTED_COLUMNS = {
+    "audit_logs": {
+        "id",
+        "actor",
+        "action",
+        "resource_type",
+        "resource_id",
+        "outcome",
+        "detail_json",
+        "created_at",
+    },
     "bank_transactions": {
         "id",
         "transaction_date",
