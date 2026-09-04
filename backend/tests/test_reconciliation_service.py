@@ -1,9 +1,6 @@
 from datetime import date
 from decimal import Decimal
 
-from sqlalchemy import create_engine, select
-from sqlalchemy.orm import Session
-
 from app.database import Base
 from app.models.finance import (
     BankTransaction,
@@ -18,6 +15,8 @@ from app.services.reconciliation import (
     get_exception_report,
     run_reconciliation,
 )
+from sqlalchemy import create_engine, select
+from sqlalchemy.orm import Session
 
 
 def test_service_persists_run_results_and_export() -> None:

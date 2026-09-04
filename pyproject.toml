@@ -8,6 +8,11 @@ target-version = "py312"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
-[tool.ruff.lint.per-file-ignores]   
-"backend/app/api/*.py" = ["B008"]
-"backend/app/services/candidate_matching.py" = ["UP046", "UP047"]
+ignore = [
+    "E501",   # Long legacy migration, test, and generated-data lines
+    "UP046",  # Keep compatible Generic syntax
+    "UP047",  # Keep compatible generic function syntax
+]
+
+[tool.ruff.lint.per-file-ignores]
+"backend/app/api/uploads.py" = ["B008"]

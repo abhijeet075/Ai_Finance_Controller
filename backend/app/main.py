@@ -9,7 +9,7 @@ settings = get_settings()
 
 app = FastAPI(
     title="AI Finance Controller",
-    version="0.12.0",
+    version="0.18.0",
     description="Evidence-based reconciliation and cash forecasting API.",
 )
 

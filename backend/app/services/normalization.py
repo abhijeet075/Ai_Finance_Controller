@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 import unicodedata
 from datetime import date, datetime
-from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import Final
 
 SUPPORTED_CURRENCIES: Final[frozenset[str]] = frozenset(

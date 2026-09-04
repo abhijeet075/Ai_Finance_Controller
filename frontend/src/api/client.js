@@ -1,4 +1,5 @@
 const API_BASE = (import.meta.env?.VITE_API_BASE_URL || "").replace(/\/$/, "");
+const API_KEY = import.meta.env?.VITE_API_KEY || "";
 
 function apiUrl(path) {
   return `${API_BASE}${path}`;
@@ -32,8 +33,10 @@ async function parseResponse(response) {
   throw error;
 }
 
-async function request(path, options) {
-  return parseResponse(await fetch(apiUrl(path), options));
+async function request(path, options = {}) {
+  const headers = { ...(options.headers || {}) };
+  if (API_KEY) headers["X-API-Key"] = API_KEY;
+  return parseResponse(await fetch(apiUrl(path), { ...options, headers }));
 }
 
 export function getHealth() {
@@ -108,3 +111,20 @@ export function exceptionUrl(runId) {
 }
 
 export const clientInternals = { apiUrl, queryString };
+
+export function getForecast({ horizonDays = 30, sourceBatch, currency } = {}) {
+  const query = queryString({ horizon_days: horizonDays, source_batch: sourceBatch, currency });
+  return request(`/api/forecasts${query}`);
+}
+
+export function analyzeException(exceptionId) {
+  return request(`/api/ai/exceptions/${encodeURIComponent(exceptionId)}/analyze`, { method: "POST" });
+}
+
+export function suggestAIMatch(runId, transactionId) {
+  return request("/api/ai/match", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ run_id: runId, transaction_id: transactionId }) });
+}
+
+export function askFinanceQuestion(question, sourceBatch) {
+  return request("/api/ai/finance-qa", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question, source_batch: sourceBatch || null }) });
+}

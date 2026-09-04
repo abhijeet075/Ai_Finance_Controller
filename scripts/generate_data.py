@@ -13,11 +13,11 @@ import random
 import shutil
 import time
 from collections import Counter
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import date, timedelta
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import ROUND_HALF_UP, Decimal
 from pathlib import Path
-from typing import Callable
 from uuid import NAMESPACE_DNS, uuid5
 
 SUPPORTED_PRESETS = (50, 100, 500, 1_000, 5_000, 10_000)

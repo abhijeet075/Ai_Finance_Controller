@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { analyzeException } from "../api/client";
 
 import StatusBadge from "./StatusBadge";
 import {
@@ -8,6 +9,15 @@ import {
 } from "../utils/formatters";
 
 export default function ExceptionDrawer({ item, onClose }) {
+  const [analysis, setAnalysis] = useState(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [analysisError, setAnalysisError] = useState("");
+  async function runAnalysis() {
+    setAnalyzing(true); setAnalysisError("");
+    try { setAnalysis(await analyzeException(item.id)); }
+    catch (requestError) { setAnalysisError(requestError.message); }
+    finally { setAnalyzing(false); }
+  }
   useEffect(() => {
     if (!item) return undefined;
     function closeOnEscape(event) {
@@ -101,6 +111,12 @@ export default function ExceptionDrawer({ item, onClose }) {
         <section className="narrative">
           <p className="eyebrow">REASON</p>
           <p>{item.description}</p>
+        </section>
+        <section className="ai-analysis">
+          <div><p className="eyebrow">AI EXCEPTION ANALYST</p><p>Uses the deterministic evidence above; it cannot change the match.</p></div>
+          <button type="button" className="button button--secondary" onClick={runAnalysis} disabled={analyzing}>{analyzing ? "Analyzing…" : "Explain exception"}</button>
+          {analysisError && <div className="alert alert--error">{analysisError}</div>}
+          {analysis && <div className="ai-analysis__result"><div><strong>{analysis.exception_type}</strong><span>{analysis.severity} · {Math.round(analysis.confidence * 100)}%</span></div><p>{analysis.explanation}</p><p><b>Next:</b> {analysis.recommended_action}</p><ul>{analysis.evidence.map((evidence) => <li key={evidence}>{evidence}</li>)}</ul></div>}
         </section>
         <section className="narrative narrative--action">
           <p className="eyebrow">RECOMMENDED ACTION</p>

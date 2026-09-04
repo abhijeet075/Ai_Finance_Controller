@@ -151,7 +151,11 @@ export default function ExceptionsPage({ runId }) {
           onPageChange={setPage}
         />
       </section>
-      <ExceptionDrawer item={selected} onClose={() => setSelected(null)} />
+      <ExceptionDrawer
+        key={selected?.id || "closed"}
+        item={selected}
+        onClose={() => setSelected(null)}
+      />
     </div>
   );
 }

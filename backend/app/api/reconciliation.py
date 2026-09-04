@@ -270,4 +270,4 @@ def download_exception_report(
         content = export_exception_report_csv(session, run_id)
     except ReconciliationRunNotFoundError as exc:
         raise _not_found(exc) from exc
-    return _csv_response(content,f"run-{run_id}-exceptions.csv",)
+    return _csv_response(content, f"run-{run_id}-exceptions.csv")
